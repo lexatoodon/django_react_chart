@@ -1,0 +1,61 @@
+version: "3"
+services:
+  database:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend: &python
+    build: ./dj_chart
+    volumes:
+      - backend:/backend
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - database
+      - rabbitmq
+      - celery_worker
+    ports:
+      - 8000:8000
+    command: python manage.py runserver 0.0.0.0:8000
+
+  rabbitmq:
+    image: rabbitmq:management 
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:   
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+
+  celery_worker:
+    <<: *python
+    command: celery -A dj_chart worker -B -l info
+    ports: []
+    depends_on:
+      - rabbitmq
+      - database
+    environment:
+      - CELERY_BROKER=amqp://admin:password@rabbitmq:5672//
+      
+  frontend:
+    build: ./frontend
+    ports:
+      - 3000:3000
+    volumes:
+      - frontend:/frontend
+    depends_on:
+      - backend
+    
+
+volumes:
+  frontend:
+  postgres_data:
+  backend:

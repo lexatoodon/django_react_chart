@@ -1,5 +1,7 @@
-### Main commands: <br/>
-`docker-compose up -d --build && docker-compose exec backend python manage.py migrate`
+### Main commands: </br>
+`docker-compose up -d --build ` </br>
+`docker-compose exec backend python manage.py migrate ` #First run </br>
+`docker-compose down`
 
 [Spread sheet sample](https://snipboard.io/BVJi27.jpg)<br/>
 ### At Google cloud
